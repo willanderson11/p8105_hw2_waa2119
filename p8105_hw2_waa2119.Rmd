@@ -1,0 +1,60 @@
+---
+title: "p8105_hw2_waa2119"
+author: "William Anderson"
+date: "2022-09-30"
+output: github_document
+---
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(dplyr)
+```
+
+
+# Homework 2
+
+## Problem 1
+First we will read in the data about entrance and exits for subway stations in NYC
+
+We will retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance then convert the entry variable from character to a logical variable
+
+
+```{r}
+subway_data = 
+  read_csv("HW2_Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+
+  janitor::clean_names() %>%
+  
+  select(line, station_name, station_latitude, station_longitude, route1:route11, entry, vending, entrance_type, ada) %>%
+  
+  mutate(entry = recode(entry, "YES" = 1, "NO" = 0))
+  
+```
+
+
+This data contains information about the different subway lines in New York City, the locations of their stations and the different routes they operate on. This data set also has information on whether the entrance types for the stations, whether the stations contain vendors and whether they are compliant with the Americans with Disabilities Act. 
+
+* The number of rows in this dataset are `r nrow(subway_data)` and the number of columns are `r ncol(subway_data)`
+
+* The number of distinct stations are `r nrow(distinct(subway_data, station_name))`
+
+
+
+```{r}
+names_and_ada = distinct(subway_data, station_name, ada)
+
+ADA_compliant = sum(names_and_ada$ada, na.rm = TRUE)
+```
+
+* The number of ADA compliant stations is `r ADA_compliant`
+
+```{r}
+station_vending_entrance = distinct(subway_data, station_name, vending, entry)
+
+station_no_vending_entrance = filter(station_vending_entrance, vending != "YES", entry != 0)
+
+```
+
+* The number of stations without vending that allow entrance are `r nrow(station_no_vending_entrance)`
+
+
