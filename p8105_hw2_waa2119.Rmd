@@ -5,7 +5,7 @@ date: "2022-09-30"
 output: github_document
 ---
 
-```{r, echo = FALSE, message = FALSE}
+```{r, echo = FALSE}
 library(tidyverse)
 library(dplyr)
 ```
@@ -38,19 +38,20 @@ This data contains information about the different subway lines in New York City
 
 * The number of rows in this dataset are `r nrow(subway_data)` and the number of columns are `r ncol(subway_data)`
 
-* The number of distinct stations are `r nrow(distinct(subway_data, station_name))`
+* The number of distinct stations are `r nrow(distinct(subway_data, line, station_name))`
 
 
 ```{r}
-names_and_ada = distinct(subway_data, station_name, ada)
+names_and_ada = distinct(subway_data, line, station_name, ada)
 
 ADA_compliant = sum(names_and_ada$ada, na.rm = TRUE)
 ```
 
 * The number of ADA compliant stations is `r ADA_compliant`
 
+
 ```{r}
-station_vending_entrance = distinct(subway_data, station_name, vending, entry)
+station_vending_entrance = distinct(subway_data, station_name, line, vending, entry)
 
 station_no_vending_entrance = filter(station_vending_entrance, vending != "YES", entry != 0)
 
@@ -58,9 +59,10 @@ station_no_vending_entrance = filter(station_vending_entrance, vending != "YES",
 
 * The number of stations without vending that allow entrance are `r nrow(station_no_vending_entrance)`
 
+
 ```{r}
 
-route_number_and_name = distinct(subway_data, station_name, ada, across(contains("route")))
+route_number_and_name = distinct(subway_data, station_name, line, ada, across(contains("route")))
 
 A_stations = filter(route_number_and_name, route1 == "A")
 
@@ -71,6 +73,8 @@ A_stations_with_ADA = filter(A_stations, ada == "TRUE")
 * The number of stations that serve the A train are `r nrow(A_stations)`
 
 * The number of stations that serve the A train and are ADA compliant are `r nrow(A_stations_with_ADA)`
+
+
 
 
 
