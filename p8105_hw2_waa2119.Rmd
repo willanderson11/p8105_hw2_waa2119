@@ -74,6 +74,18 @@ A_stations_with_ADA = filter(A_stations, ada == "TRUE")
 
 * The number of stations that serve the A train and are ADA compliant are `r nrow(A_stations_with_ADA)`
 
+## Problem 2
+
+Now we will read in an excel file for Mr. Trash Wheel
+
+```{r, echo = FALSE}
+library(readxl)
+
+mr_trash_wheel = 
+  read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = "") %>%
+  janitor::clean_names()
+  
+```
 
 
 
