@@ -6,8 +6,11 @@ output: github_document
 ---
 
 ```{r, echo = FALSE}
+
 library(tidyverse)
 library(dplyr)
+library(readxl)
+
 ```
 
 
@@ -25,7 +28,7 @@ subway_data =
 
   janitor::clean_names() %>%
   
-  select(line, station_name, station_latitude, station_longitude, route1:route11, entry, vending, entrance_type, ada) %>%
+  select(line, station_name, station_latitude, station_longitude, route1:route11, entry, exit_only, vending, entrance_type, ada) %>%
   
   mutate(entry = recode(entry, "YES" = 1, "NO" = 0))
 
@@ -50,15 +53,18 @@ ADA_compliant = sum(names_and_ada$ada, na.rm = TRUE)
 * The number of ADA compliant stations is `r ADA_compliant`
 
 
-```{r}
-station_vending_entrance = distinct(subway_data, station_name, line, vending, entry)
+* The proportion of stations without vending that allow entrance is given below
 
-station_no_vending_entrance = filter(station_vending_entrance, vending != "YES", entry != 0)
+```{r}
+subway_data %>%
+  filter(vending != "YES") %>%
+  pull(entry) %>%
+mean
 
 ```
 
-* The number of stations without vending that allow entrance are `r nrow(station_no_vending_entrance)`
 
+Now we find the number of stations serving the A train and which of these are ADA compliant. 
 
 ```{r}
 
@@ -78,15 +84,35 @@ A_stations_with_ADA = filter(A_stations, ada == "TRUE")
 
 Now we will read in an excel file for Mr. Trash Wheel
 
-```{r, echo = FALSE}
-library(readxl)
+```{r}
 
 mr_trash_wheel = 
-  read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = "") %>%
-  janitor::clean_names()
-  
+  read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = "", range = cell_cols(1:14)) %>%
+  janitor::clean_names() %>%
+  na.omit() %>%
+  mutate(sports_balls = as.integer(round(sports_balls)))
+
 ```
 
+
+Now we import the professor trash wheel dataset
+
+```{r}
+
+prof_trash_wheel = 
+  read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", skip = 1, na = "") %>%
+  janitor::clean_names() %>%
+  na.omit() %>%
+  mutate(sports_balls = as.integer(round(sports_balls)))
+
+```
+
+
+Now we combine Mr. Trash Wheel and Professor Trash Wheel datasets
+```{r}
+trash_wheel = 
+  inner_join(mr_trash_wheel, prof_trash_wheel)
+```
 
 
 
