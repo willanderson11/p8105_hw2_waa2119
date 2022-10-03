@@ -5,7 +5,7 @@ date: "2022-09-30"
 output: github_document
 ---
 
-```{r, echo = FALSE}
+```{r, message = FALSE}
 
 library(tidyverse)
 library(dplyr)
@@ -80,6 +80,8 @@ A_stations_with_ADA = filter(A_stations, ada == "TRUE")
 
 * The number of stations that serve the A train and are ADA compliant are `r nrow(A_stations_with_ADA)`
 
+
+
 ## Problem 2
 
 Now we will read in an excel file for Mr. Trash Wheel
@@ -109,10 +111,19 @@ prof_trash_wheel =
 
 
 Now we combine Mr. Trash Wheel and Professor Trash Wheel datasets
+
 ```{r}
+mr_trash_wheel$dumpster = as.double(mr_trash_wheel$dumpster)
+
 trash_wheel = 
-  inner_join(mr_trash_wheel, prof_trash_wheel)
+  full_join(mr_trash_wheel, prof_trash_wheel, by = "dumpster")
+
+trash_wheel
 ```
 
+This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The combined dumpsters data set contains `r count(trash_wheel)` observations with key variables `r colnames(trash_wheel)`. 
 
+* The total weight of trash collected by Professor Trash Wheel from 2017 - 2020 was `r sum(prof_trash_wheel$weight_tons)` tons.
+
+* The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mr_trash_wheel$sports_balls[381:452])` balls. 
 
