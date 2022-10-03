@@ -127,3 +127,19 @@ This combined data set contains dumpster data for two different waterfront trash
 
 * The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mr_trash_wheel$sports_balls[381:452])` balls. 
 
+
+
+## Problem 3
+
+```{r}
+pols_month = 
+  read_csv("HW2_Data/pols-month.csv") %>%
+  janitor::clean_names() %>%
+  separate(col = mon, into = c(year, month, day)) %>%
+  rename(month_name = mon) %>%
+  mutate(president == ("gop" | "dem")) %>%
+  select(-prez_dem, -prez_gop)
+
+
+```
+
