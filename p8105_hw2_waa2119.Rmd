@@ -92,7 +92,8 @@ mr_trash_wheel =
   read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = "", range = cell_cols(1:14)) %>%
   janitor::clean_names() %>%
   na.omit() %>%
-  mutate(sports_balls = as.integer(round(sports_balls)))
+  mutate(sports_balls = as.integer(round(sports_balls))) %>%
+  add_column()
 
 ```
 
@@ -115,15 +116,19 @@ Now we combine Mr. Trash Wheel and Professor Trash Wheel datasets
 ```{r}
 mr_trash_wheel$dumpster = as.double(mr_trash_wheel$dumpster)
 
-trash_wheel = 
-  full_join(mr_trash_wheel, prof_trash_wheel, by = "dumpster")
+trash_wheel_combined = 
+  bind_rows(mr_trash_wheel, prof_trash_wheel, .id = "trash_wheel_type")
 
-trash_wheel
+
+head(trash_wheel_combined, 15)
 ```
 
-This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The combined dumpsters data set contains `r count(trash_wheel)` observations with key variables `r colnames(trash_wheel)`. 
+
+This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The combined dumpsters data set contains `r count(trash_wheel_combined)` observations where trash_wheel_type = 1 is the Mr. Trash Wheel data set and trash_wheel_type = 2 is the Professor Trash Wheel data set. Key variables are `r colnames(trash_wheel_combined)`. 
+
 
 * The total weight of trash collected by Professor Trash Wheel from 2017 - 2020 was `r sum(prof_trash_wheel$weight_tons)` tons.
+
 
 * The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mr_trash_wheel$sports_balls[381:452])` balls. 
 
@@ -131,15 +136,79 @@ This combined data set contains dumpster data for two different waterfront trash
 
 ## Problem 3
 
-```{r}
-pols_month = 
-  read_csv("HW2_Data/pols-month.csv") %>%
-  janitor::clean_names() %>%
-  separate(col = mon, into = c(year, month, day)) %>%
-  rename(month_name = mon) %>%
-  mutate(president == ("gop" | "dem")) %>%
-  select(-prez_dem, -prez_gop)
+First we read in the pols-month data
 
+```{r}
+polls_monthly = 
+  read_csv("HW2_Data/pols-month.csv", na = "") %>%
+  
+  janitor::clean_names() %>%
+  
+  na.omit() %>%
+  
+  separate(mon, into = c("year", "month", "day")) %>%
+  
+  mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%
+  
+  mutate(month = month.name[month]) %>%
+  
+  mutate(president = ifelse(prez_gop == 0, "dem", "gop")) %>%
+  
+  select(-prez_dem, -prez_gop, -day)
+  
+
+
+head(polls_monthly, 20)
+```
+
+
+Next we read in the snp stock data
+
+```{r}
+snp_stock_data = 
+  read_csv("HW2_Data/snp.csv", na = "") %>%
+  
+  janitor::clean_names() %>%
+  
+  na.omit() %>%
+  
+  separate(date, into = c("month", "day", "year")) %>%
+  
+  mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%
+  
+  mutate(year_change = ifelse(year < 22, 2000, 1900)) %>%
+  
+  mutate(year = year_change + year) %>%
+  
+  mutate(month = month.name[month]) %>%
+
+  select(-day, -year_change) %>%
+  
+  relocate(year, .before = month)
+
+head(snp_stock_data, 20)
+  
+```
+
+
+Now we will import the unemployment data
+
+```{r}
+unemployment = 
+  read_csv("HW2_Data/unemployment.csv", na = "") %>%
+  
+  janitor::clean_names() %>%
+  
+  na.omit() %>%
+  
+  pivot_longer(
+    jan:dec, names_to = "month", values_to = "unemployment %") %>%
+  
+  mutate(year = as.integer(year))
+
+
+head(unemployment, 20)
 
 ```
 
+ 
