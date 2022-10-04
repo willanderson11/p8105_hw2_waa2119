@@ -22,7 +22,8 @@ First we will read in the data about entrance and exits for subway stations in N
 We will retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance then convert the entry variable from character to a logical variable
 
 
-```{r}
+```{r, message = FALSE}
+
 subway_data = 
   read_csv("HW2_Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
 
@@ -32,22 +33,24 @@ subway_data =
   
   mutate(entry = recode(entry, "YES" = 1, "NO" = 0))
 
-subway_data
+head(subway_data, 20)
   
 ```
 
 
 This data contains information about the different subway lines in New York City, the locations of their stations and the different routes they operate on. This data set also has information on whether the entrance types for the stations, whether the stations contain vendors and whether they are compliant with the Americans with Disabilities Act. 
 
-* The number of rows in this dataset are `r nrow(subway_data)` and the number of columns are `r ncol(subway_data)`
+* The number of rows in this data set are `r nrow(subway_data)` and the number of columns are `r ncol(subway_data)`
 
 * The number of distinct stations are `r nrow(distinct(subway_data, line, station_name))`
 
 
 ```{r}
+
 names_and_ada = distinct(subway_data, line, station_name, ada)
 
 ADA_compliant = sum(names_and_ada$ada, na.rm = TRUE)
+
 ```
 
 * The number of ADA compliant stations is `r ADA_compliant`
@@ -62,6 +65,8 @@ subway_data %>%
 mean
 
 ```
+
+* This shows that 37.7% of subway stations without vending also allow entrance. 
 
 
 Now we find the number of stations serving the A train and which of these are ADA compliant. 
@@ -89,24 +94,37 @@ Now we will read in an excel file for Mr. Trash Wheel
 ```{r}
 
 mr_trash_wheel = 
-  read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = "", range = cell_cols(1:14)) %>%
+  read_excel("HW2_Data/Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", skip = 1, na = "", range = cell_cols(1:14)) %>%
+  
   janitor::clean_names() %>%
+  
   na.omit() %>%
+  
   mutate(sports_balls = as.integer(round(sports_balls))) %>%
-  add_column()
+  
+  select(-date)
 
+
+head(mr_trash_wheel, 20)
+  
 ```
 
 
-Now we import the professor trash wheel dataset
+Now we import the professor trash wheel data set
 
 ```{r}
 
 prof_trash_wheel = 
-  read_excel("HW2_Data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = "Professor Trash Wheel", skip = 1, na = "") %>%
+  read_excel("HW2_Data/Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", skip = 1, na = "") %>%
+  
   janitor::clean_names() %>%
+  
   na.omit() %>%
-  mutate(sports_balls = as.integer(round(sports_balls)))
+  
+  select(-date)
+
+
+head(prof_trash_wheel, 20)
 
 ```
 
@@ -114,17 +132,21 @@ prof_trash_wheel =
 Now we combine Mr. Trash Wheel and Professor Trash Wheel datasets
 
 ```{r}
+
 mr_trash_wheel$dumpster = as.double(mr_trash_wheel$dumpster)
+
+mr_trash_wheel$year = as.double(mr_trash_wheel$year)
 
 trash_wheel_combined = 
   bind_rows(mr_trash_wheel, prof_trash_wheel, .id = "trash_wheel_type")
+  
 
+head(trash_wheel_combined, 20)
 
-head(trash_wheel_combined, 15)
 ```
 
 
-This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The combined dumpsters data set contains `r count(trash_wheel_combined)` observations where trash_wheel_type = 1 is the Mr. Trash Wheel data set and trash_wheel_type = 2 is the Professor Trash Wheel data set. Key variables are `r colnames(trash_wheel_combined)`. 
+This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The director of the program, Adam Lindquist, describes the operation as "Trash collected by the Trash Wheel is immediately dumped into a dumpster sitting on a separate barge at the back of the device. Each time the dumpster fills it is removed by boat and replaced with an empty dumpster. The full dumpster is transported to a waste-to-energy plant with the trash is incinerated to make electricity for Maryland homes." The combined dumpsters data set contains `r count(trash_wheel_combined)` observations where trash_wheel_type = 1 is the Mr. Trash Wheel data set and trash_wheel_type = 2 is the Professor Trash Wheel data set. Key variables are `r colnames(trash_wheel_combined)`. 
 
 
 * The total weight of trash collected by Professor Trash Wheel from 2017 - 2020 was `r sum(prof_trash_wheel$weight_tons)` tons.
@@ -138,7 +160,8 @@ This combined data set contains dumpster data for two different waterfront trash
 
 First we read in the pols-month data
 
-```{r}
+```{r, show_col_types = FALSE, message = FALSE}
+
 polls_monthly = 
   read_csv("HW2_Data/pols-month.csv", na = "") %>%
   
@@ -146,25 +169,28 @@ polls_monthly =
   
   na.omit() %>%
   
-  separate(mon, into = c("year", "month", "day")) %>%
+  separate(mon, into = c("month", "day", "year")) %>%
   
   mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%
   
   mutate(month = month.name[month]) %>%
-  
+
   mutate(president = ifelse(prez_gop == 0, "dem", "gop")) %>%
   
-  select(-prez_dem, -prez_gop, -day)
+  select(-prez_dem, -prez_gop, -day) %>%
+  
+  relocate(year, .before = month)
   
 
-
 head(polls_monthly, 20)
+
 ```
 
 
-Next we read in the snp stock data
+Next we read in the s&p stock data
 
-```{r}
+```{r, show_col_types = FALSE, message = FALSE}
+
 snp_stock_data = 
   read_csv("HW2_Data/snp.csv", na = "") %>%
   
@@ -178,13 +204,14 @@ snp_stock_data =
   
   mutate(year_change = ifelse(year < 22, 2000, 1900)) %>%
   
-  mutate(year = year_change + year) %>%
+  mutate(year = as.integer(year_change + year)) %>%
   
   mutate(month = month.name[month]) %>%
 
   select(-day, -year_change) %>%
   
   relocate(year, .before = month)
+
 
 head(snp_stock_data, 20)
   
@@ -193,7 +220,8 @@ head(snp_stock_data, 20)
 
 Now we will import the unemployment data
 
-```{r}
+```{r, show_col_types = FALSE, message = FALSE}
+
 unemployment = 
   read_csv("HW2_Data/unemployment.csv", na = "") %>%
   
@@ -204,11 +232,55 @@ unemployment =
   pivot_longer(
     jan:dec, names_to = "month", values_to = "unemployment %") %>%
   
-  mutate(year = as.integer(year))
+  mutate(
+      month = replace(month, month == "jan", 1),
+      month = replace(month, month == "feb", 2),
+      month = replace(month, month == "mar", 3),
+      month = replace(month, month == "apr", 4), 
+      month = replace(month, month == "may", 5),
+      month = replace(month, month == "jun", 6),
+      month = replace(month, month == "jul", 7),
+      month = replace(month, month == "aug", 8),
+      month = replace(month, month == "sep", 9),
+      month = replace(month, month == "oct", 10),
+      month = replace(month, month == "nov", 11),
+      month = replace(month, month == "dec", 12)
+  ) %>%
+  
+  mutate(
+    year = as.integer(year), month = as.integer(month)
+    ) %>%
+  
+  mutate(month = month.name[month])
 
 
 head(unemployment, 20)
 
 ```
 
- 
+
+Now we will join all three data sets by first combining s&p into pols then combining with unemployment data. 
+
+```{r, show_col_types = FALSE, message = FALSE}
+
+snp_into_pols = 
+  left_join(polls_monthly, snp_stock_data, by = c("year", "month"))
+
+head(snp_into_pols, 20)
+
+unemployment_snp_pols = 
+  left_join(snp_into_pols, unemployment, by = c("year", "month"))
+
+head(unemployment_snp_pols, 20)
+
+view(unemployment_snp_pols)
+```
+
+
+Each data set includes historical data for national politicians and their affiliated political party, s&p stock prices, and unemployment rates over time. Combining this data together is intended to display correlation between political party changes, unemployment rates, and stock market behavior over time.
+
+The variables in the polls data set is `r colnames(polls_monthly)`, variables in the s&p data set are `r colnames(snp_stock_data)`, variables in the unemployment data set are `r colnames(unemployment)`, and the variables in the combined data set are `r colnames(unemployment_snp_pols)`. 
+
+The range of years of the data sets are 1947 - 2015. 
+
+The dimensions of the polling data set are `r dim(polls_monthly)`, the dimensions of the s&p data set are `r dim(snp_stock_data)`, the dimensions of the unemployment data set are `r dim(unemployment)`, and the dimensions of the combined data set are `r dim(unemployment_snp_pols)`. 
