@@ -98,14 +98,13 @@ mr_trash_wheel =
   
   janitor::clean_names() %>%
   
-  na.omit() %>%
+  mutate(
+    sports_balls = as.integer(round(sports_balls))) %>%
   
-  mutate(sports_balls = as.integer(round(sports_balls))) %>%
-  
-  select(-date)
+  slice(1:(n() - 1))
 
 
-head(mr_trash_wheel, 20)
+head(mr_trash_wheel, 40)
   
 ```
 
@@ -119,17 +118,15 @@ prof_trash_wheel =
   
   janitor::clean_names() %>%
   
-  na.omit() %>%
+  slice(1:(n() - 1))
   
-  select(-date)
 
-
-head(prof_trash_wheel, 20)
+head(prof_trash_wheel, 40)
 
 ```
 
 
-Now we combine Mr. Trash Wheel and Professor Trash Wheel datasets
+Now we combine Mr. Trash Wheel and Professor Trash Wheel data sets
 
 ```{r}
 
@@ -141,15 +138,20 @@ trash_wheel_combined =
   bind_rows(mr_trash_wheel, prof_trash_wheel, .id = "trash_wheel_type")
   
 
-head(trash_wheel_combined, 20)
+head(trash_wheel_combined, 40)
 
 ```
 
 
-This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The director of the program, Adam Lindquist, describes the operation as "Trash collected by the Trash Wheel is immediately dumped into a dumpster sitting on a separate barge at the back of the device. Each time the dumpster fills it is removed by boat and replaced with an empty dumpster. The full dumpster is transported to a waste-to-energy plant with the trash is incinerated to make electricity for Maryland homes." The combined dumpsters data set contains `r count(trash_wheel_combined)` observations where trash_wheel_type = 1 is the Mr. Trash Wheel data set and trash_wheel_type = 2 is the Professor Trash Wheel data set. Key variables are `r colnames(trash_wheel_combined)`. 
+This combined data set contains dumpster data for two different waterfront trash wheels in Baltimore, Maryland. They are operated by a company called Healthy Harbor which aims to use these trash wheels to clean and gather trash floating in the harbor in Baltimore. The director of the program, Adam Lindquist, describes the operation as "Trash collected by the Trash Wheel is immediately dumped into a dumpster sitting on a separate barge at the back of the device. Each time the dumpster fills it is removed by boat and replaced with an empty dumpster. The full dumpster is transported to a waste-to-energy plant with the trash is incinerated to make electricity for Maryland homes." 
 
 
-* The total weight of trash collected by Professor Trash Wheel from 2017 - 2020 was `r sum(prof_trash_wheel$weight_tons)` tons.
+The combined dumpsters data set contains `r count(trash_wheel_combined)` observations where trash_wheel_type = 1 is the Mr. Trash Wheel data set and trash_wheel_type = 2 is the Professor Trash Wheel data set. 
+
+Key variables are `r colnames(trash_wheel_combined)`. 
+
+
+* The total weight of trash collected by Professor Trash Wheel from 2017 - 2022 was `r sum(prof_trash_wheel$weight_tons)` tons.
 
 
 * The total number of sports balls collected by Mr. Trash Wheel in 2020 was `r sum(mr_trash_wheel$sports_balls[381:452])` balls. 
@@ -167,13 +169,14 @@ polls_monthly =
   
   janitor::clean_names() %>%
   
-  na.omit() %>%
-  
   separate(mon, into = c("month", "day", "year")) %>%
   
   mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%
   
   mutate(month = month.name[month]) %>%
+  
+  mutate(
+    prez_gop = replace(prez_gop, prez_gop == 2, 1)) %>%
 
   mutate(president = ifelse(prez_gop == 0, "dem", "gop")) %>%
   
@@ -182,7 +185,7 @@ polls_monthly =
   relocate(year, .before = month)
   
 
-head(polls_monthly, 20)
+head(polls_monthly, 40)
 
 ```
 
@@ -195,8 +198,6 @@ snp_stock_data =
   read_csv("HW2_Data/snp.csv", na = "") %>%
   
   janitor::clean_names() %>%
-  
-  na.omit() %>%
   
   separate(date, into = c("month", "day", "year")) %>%
   
@@ -213,7 +214,7 @@ snp_stock_data =
   relocate(year, .before = month)
 
 
-head(snp_stock_data, 20)
+head(snp_stock_data, 40)
   
 ```
 
@@ -226,8 +227,6 @@ unemployment =
   read_csv("HW2_Data/unemployment.csv", na = "") %>%
   
   janitor::clean_names() %>%
-  
-  na.omit() %>%
   
   pivot_longer(
     jan:dec, names_to = "month", values_to = "unemployment %") %>%
@@ -254,7 +253,7 @@ unemployment =
   mutate(month = month.name[month])
 
 
-head(unemployment, 20)
+head(unemployment, 40)
 
 ```
 
@@ -271,9 +270,9 @@ head(snp_into_pols, 20)
 unemployment_snp_pols = 
   left_join(snp_into_pols, unemployment, by = c("year", "month"))
 
-head(unemployment_snp_pols, 20)
 
-view(unemployment_snp_pols)
+head(unemployment_snp_pols, 40)
+
 ```
 
 
@@ -281,6 +280,6 @@ Each data set includes historical data for national politicians and their affili
 
 The variables in the polls data set is `r colnames(polls_monthly)`, variables in the s&p data set are `r colnames(snp_stock_data)`, variables in the unemployment data set are `r colnames(unemployment)`, and the variables in the combined data set are `r colnames(unemployment_snp_pols)`. 
 
-The range of years of the data sets are 1947 - 2015. 
+The range of years of the data sets are `r unemployment_snp_pols$year[1]` - `r unemployment_snp_pols$year[822]`. 
 
 The dimensions of the polling data set are `r dim(polls_monthly)`, the dimensions of the s&p data set are `r dim(snp_stock_data)`, the dimensions of the unemployment data set are `r dim(unemployment)`, and the dimensions of the combined data set are `r dim(unemployment_snp_pols)`. 
