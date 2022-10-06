@@ -165,12 +165,12 @@ First we read in the pols-month data
 ```{r, show_col_types = FALSE, message = FALSE}
 
 polls_monthly = 
-  read_csv("HW2_Data/pols-month.csv", na = "") %>%
+  read_csv("HW2_Data/pols-month.csv") %>%
   
   janitor::clean_names() %>%
-  
-  separate(mon, into = c("month", "day", "year")) %>%
-  
+
+  separate(mon, into = c("year", "month", "day")) %>%
+
   mutate(year = as.integer(year), month = as.integer(month), day = as.integer(day)) %>%
   
   mutate(month = month.name[month]) %>%
@@ -186,8 +186,8 @@ polls_monthly =
   
 
 head(polls_monthly, 40)
-
 ```
+
 
 
 Next we read in the s&p stock data
